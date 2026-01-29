@@ -1,0 +1,17 @@
+version: '3'
+
+tasks:
+  build:
+    desc: Build the production bin
+    cmds:
+      - go build -ldflags="-s -w" -o dist/chess main.go
+
+  dev:
+    desc: Run main go file
+    cmds:
+      - go run main.go
+  
+  clean:
+    desc: Removes the dist folder
+    cmds:
+      - rm -rf dist/
