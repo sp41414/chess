@@ -1,7 +1,5 @@
 package board
 
-import "fmt"
-
 type Move uint16
 
 func NewMove(from, to, flags int) Move {
@@ -142,7 +140,6 @@ func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
 			break
 		}
 		attacks |= Bitboard(1 << current)
-		fmt.Printf("adding square %d\n", current)
 		if occupancy&(1<<current) != 0 {
 			break
 		}
@@ -159,7 +156,6 @@ func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
 			break
 		}
 		attacks |= Bitboard(1 << current)
-		fmt.Printf("adding square %d\n", current)
 		if occupancy&(1<<current) != 0 {
 			break
 		}
@@ -176,7 +172,6 @@ func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
 			break
 		}
 		attacks |= Bitboard(1 << current)
-		fmt.Printf("adding square %d\n", current)
 		if occupancy&(1<<current) != 0 {
 			break
 		}
@@ -193,11 +188,15 @@ func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
 			break
 		}
 		attacks |= Bitboard(1 << current)
-		fmt.Printf("adding square %d\n", current)
 		if occupancy&(1<<current) != 0 {
 			break
 		}
 	}
 
 	return attacks
+}
+
+// CalculateQueenMoves combines the rook moves and bishop moves, which basically means all directions.
+func CalculateQueenMoves(square int, occupancy Bitboard) Bitboard {
+	return CalculateRookMoves(square, occupancy) | CalculateBishopMoves(square, occupancy)
 }

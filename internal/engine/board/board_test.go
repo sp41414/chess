@@ -189,6 +189,63 @@ func TestBishopMoves(t *testing.T) {
 	}
 }
 
+func TestQueenMoves(t *testing.T) {
+	tests := []struct {
+		name      string
+		square    int
+		occupancy Bitboard
+		expected  int
+	}{
+		{
+			name:      "d4 empty board",
+			square:    27,
+			occupancy: 0,
+			expected:  27,
+		},
+		{
+			name:      "d4 with blocking",
+			square:    27,
+			occupancy: (1 << 35) | (1 << 19),
+			expected:  22,
+		},
+		{
+			name:      "a1 corner empty",
+			square:    0,
+			occupancy: 0,
+			expected:  21,
+		},
+		{
+			name:      "h8 corner empty",
+			square:    63,
+			occupancy: 0,
+			expected:  21,
+		},
+		{
+			name:      "e4 center",
+			square:    28,
+			occupancy: 0,
+			expected:  27,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			moves := CalculateQueenMoves(tt.square, tt.occupancy)
+
+			count := 0
+			for i := range 64 {
+				if moves&(1<<i) != 0 {
+					count++
+				}
+			}
+
+			if count != tt.expected {
+				t.Errorf("got %d moves, want %d", count, tt.expected)
+			}
+		})
+	}
+}
+
 func TestZobristHash(t *testing.T) {
 	InitZobrist()
 
