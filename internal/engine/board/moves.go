@@ -30,3 +30,27 @@ func (m Move) To() int {
 func (m Move) Flags() int {
 	return int((m >> 12) & 0xF)
 }
+
+const (
+	FileA uint64 = 0x0101010101010101
+	FileH uint64 = 0x8080808080808080
+)
+
+func CalculateKnightMoves(square int) Bitboard {
+	attacks := Bitboard(0)
+	knight := Bitboard(1 << square)
+
+	FileAB := Bitboard(FileA | (FileA << 1))
+	FileGH := Bitboard(FileH | (FileH >> 1))
+
+	attacks |= (knight &^ Bitboard(FileH)) << 17 // up 2, right 1
+	attacks |= (knight &^ Bitboard(FileA)) << 15 // up 2, left 1
+	attacks |= (knight &^ FileGH) << 10          // up 1, right 2
+	attacks |= (knight &^ FileAB) << 6           // up 1, left 2
+	attacks |= (knight &^ FileGH) >> 6           // down 1, right 2
+	attacks |= (knight &^ FileAB) >> 10          // down 1, left 2
+	attacks |= (knight &^ Bitboard(FileH)) >> 15 // down 2, right 1
+	attacks |= (knight &^ Bitboard(FileA)) >> 17 // down 2, left 1
+
+	return attacks
+}
