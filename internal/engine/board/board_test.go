@@ -132,6 +132,63 @@ func TestMove(t *testing.T) {
 	}
 }
 
+func TestBishopMoves(t *testing.T) {
+	tests := []struct {
+		name      string
+		square    int
+		occupancy Bitboard
+		expected  []int
+	}{
+		{
+			name:      "d4 empty board",
+			square:    27,
+			occupancy: 0,
+			expected:  []int{0, 9, 18, 36, 45, 54, 63, 6, 13, 20, 34, 41, 48},
+		},
+		{
+			name:      "d4 blocked NE at f6",
+			square:    27,
+			occupancy: 1 << 45,
+			expected:  []int{0, 9, 18, 36, 45, 6, 13, 20, 34, 41, 48},
+		},
+		{
+			name:      "a1 corner empty",
+			square:    0,
+			occupancy: 0,
+			expected:  []int{9, 18, 27, 36, 45, 54, 63},
+		},
+		{
+			name:      "h8 corner empty",
+			square:    63,
+			occupancy: 0,
+			expected:  []int{0, 9, 18, 27, 36, 45, 54},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			moves := CalculateBishopMoves(tt.square, tt.occupancy)
+
+			count := 0
+			for i := range 64 {
+				if moves&(1<<i) != 0 {
+					count++
+				}
+			}
+
+			if count != len(tt.expected) {
+				t.Errorf("got %d moves, want %d", count, len(tt.expected))
+			}
+
+			for _, exp := range tt.expected {
+				if moves&(1<<exp) == 0 {
+					t.Errorf("missing move to square %d", exp)
+				}
+			}
+		})
+	}
+}
+
 func TestZobristHash(t *testing.T) {
 	InitZobrist()
 

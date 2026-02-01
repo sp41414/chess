@@ -1,5 +1,7 @@
 package board
 
+import "fmt"
+
 type Move uint16
 
 func NewMove(from, to, flags int) Move {
@@ -116,6 +118,82 @@ func CalculateRookMoves(square int, occupancy Bitboard) Bitboard {
 		if Bitboard(1<<current)&Bitboard(FileA) != 0 {
 			break
 		}
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	return attacks
+}
+
+// CalculateBishopMoves goes through every diagonal direction and checks
+// if it goes off board or hits a piece
+func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
+	attacks := Bitboard(0)
+	current := square
+
+	// Loop north-east
+	for {
+		if Bitboard(1<<current)&Bitboard(FileH) != 0 {
+			break
+		}
+		current += 9
+		if current > 63 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		fmt.Printf("adding square %d\n", current)
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop north-west
+	current = square
+	for {
+		if Bitboard(1<<current)&Bitboard(FileA) != 0 {
+			break
+		}
+		current += 7
+		if current > 63 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		fmt.Printf("adding square %d\n", current)
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop south-east
+	current = square
+	for {
+		if Bitboard(1<<current)&Bitboard(FileH) != 0 {
+			break
+		}
+		current -= 7
+		if current < 0 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		fmt.Printf("adding square %d\n", current)
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop south-west
+	current = square
+	for {
+		if Bitboard(1<<current)&Bitboard(FileA) != 0 {
+			break
+		}
+		current -= 9
+		if current < 0 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		fmt.Printf("adding square %d\n", current)
 		if occupancy&(1<<current) != 0 {
 			break
 		}
