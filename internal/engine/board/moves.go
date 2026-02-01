@@ -36,6 +36,9 @@ const (
 	FileH uint64 = 0x8080808080808080
 )
 
+// CalculateKnightMoves goes through every L direction
+// and checks if it goes off the Bitboard
+// around FileH, FileA, FileGH, FileAB
 func CalculateKnightMoves(square int) Bitboard {
 	attacks := Bitboard(0)
 	knight := Bitboard(1 << square)
@@ -51,6 +54,72 @@ func CalculateKnightMoves(square int) Bitboard {
 	attacks |= (knight &^ FileAB) >> 10          // down 1, left 2
 	attacks |= (knight &^ Bitboard(FileH)) >> 15 // down 2, right 1
 	attacks |= (knight &^ Bitboard(FileA)) >> 17 // down 2, left 1
+
+	return attacks
+}
+
+// CalculateRookMoves goes through up, down, left, and right directions
+// and checks if it hits a piece or is off the board
+func CalculateRookMoves(square int, occupancy Bitboard) Bitboard {
+	attacks := Bitboard(0)
+	current := square
+
+	// Loop north
+	for {
+		current += 8
+		if current > 63 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop south
+	current = square
+	for {
+		current -= 8
+		if current < 0 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop east
+	current = square
+	for {
+		current += 1
+		if current > 63 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		if Bitboard(1<<current)&Bitboard(FileH) != 0 {
+			break
+		}
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
+
+	// Loop west
+	current = square
+	for {
+		current -= 1
+		if current < 0 {
+			break
+		}
+		attacks |= Bitboard(1 << current)
+		if Bitboard(1<<current)&Bitboard(FileA) != 0 {
+			break
+		}
+		if occupancy&(1<<current) != 0 {
+			break
+		}
+	}
 
 	return attacks
 }
