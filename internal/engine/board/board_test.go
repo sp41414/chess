@@ -246,6 +246,68 @@ func TestQueenMoves(t *testing.T) {
 	}
 }
 
+func TestKingMoves(t *testing.T) {
+	tests := []struct {
+		name     string
+		square   int
+		expected []int
+	}{
+		{
+			name:     "e4 center",
+			square:   28,
+			expected: []int{19, 20, 21, 27, 29, 35, 36, 37},
+		},
+		{
+			name:     "a1 corner",
+			square:   0,
+			expected: []int{1, 8, 9},
+		},
+		{
+			name:     "h1 corner",
+			square:   7,
+			expected: []int{6, 14, 15},
+		},
+		{
+			name:     "a8 corner",
+			square:   56,
+			expected: []int{48, 49, 57},
+		},
+		{
+			name:     "h8 corner",
+			square:   63,
+			expected: []int{54, 55, 62},
+		},
+		{
+			name:     "d4",
+			square:   27,
+			expected: []int{18, 19, 20, 26, 28, 34, 35, 36},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			moves := CalculateKingMoves(tt.square)
+
+			count := 0
+			for i := range 64 {
+				if moves&(1<<i) != 0 {
+					count++
+				}
+			}
+
+			if count != len(tt.expected) {
+				t.Errorf("got %d moves, want %d", count, len(tt.expected))
+			}
+
+			for _, exp := range tt.expected {
+				if moves&(1<<exp) == 0 {
+					t.Errorf("missing move to square %d", exp)
+				}
+			}
+		})
+	}
+}
+
 func TestZobristHash(t *testing.T) {
 	InitZobrist()
 

@@ -37,7 +37,7 @@ const (
 )
 
 // CalculateKnightMoves goes through every L direction
-// and checks if it goes off the Bitboard
+// and masks to 0 if it goes off the Bitboard
 // around FileH, FileA, FileGH, FileAB
 func CalculateKnightMoves(square int) Bitboard {
 	attacks := Bitboard(0)
@@ -54,6 +54,25 @@ func CalculateKnightMoves(square int) Bitboard {
 	attacks |= (knight &^ FileAB) >> 10          // down 1, left 2
 	attacks |= (knight &^ Bitboard(FileH)) >> 15 // down 2, right 1
 	attacks |= (knight &^ Bitboard(FileA)) >> 17 // down 2, left 1
+
+	return attacks
+}
+
+// CalculateKingMoves goes through all 8 directions
+// and masks to 0 if it goes off the Bitboard
+// around FileH and FileA
+func CalculateKingMoves(square int) Bitboard {
+	king := Bitboard(1 << square)
+	attacks := Bitboard(0)
+
+	attacks |= king << 8                      // up 1
+	attacks |= king >> 8                      // down 1
+	attacks |= (king &^ Bitboard(FileH)) << 1 // right 1
+	attacks |= (king &^ Bitboard(FileA)) >> 1 // left 1
+	attacks |= (king &^ Bitboard(FileH)) << 9 // up 1, right 1
+	attacks |= (king &^ Bitboard(FileA)) << 7 // up 1, left 1
+	attacks |= (king &^ Bitboard(FileH)) >> 7 // down 1, right 1
+	attacks |= (king &^ Bitboard(FileA)) >> 9 // down 1, left 1
 
 	return attacks
 }
