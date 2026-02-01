@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chess/internal/ui"
+	"github.com/sp41414/chess/internal/ui"
 
 	"fyne.io/fyne/v2/app"
 )
