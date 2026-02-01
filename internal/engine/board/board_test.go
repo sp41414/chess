@@ -308,6 +308,82 @@ func TestKingMoves(t *testing.T) {
 	}
 }
 
+func TestPawnMoves(t *testing.T) {
+	tests := []struct {
+		name            string
+		square          int
+		color           int
+		occupancy       Bitboard
+		enPassantSquare int
+		expected        []int
+	}{
+		{
+			name:            "white e2 empty board",
+			square:          12,
+			color:           White,
+			occupancy:       0,
+			enPassantSquare: -1,
+			expected:        []int{19, 20, 21, 28},
+		},
+		{
+			name:            "white e4 empty",
+			square:          28,
+			color:           White,
+			occupancy:       0,
+			enPassantSquare: -1,
+			expected:        []int{35, 36, 37},
+		},
+		{
+			name:            "white e2 e3 blocked",
+			square:          12,
+			color:           White,
+			occupancy:       1 << 20,
+			enPassantSquare: -1,
+			expected:        []int{19, 21},
+		},
+		{
+			name:            "black e7 empty",
+			square:          52,
+			color:           Black,
+			occupancy:       0,
+			enPassantSquare: -1,
+			expected:        []int{43, 44, 45, 36},
+		},
+		{
+			name:            "white d5 en passant e6",
+			square:          35,
+			color:           White,
+			occupancy:       0,
+			enPassantSquare: 44,
+			expected:        []int{42, 43, 44},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			moves := CalculatePawnMoves(tt.square, tt.color, tt.occupancy, tt.enPassantSquare)
+
+			count := 0
+
+			for i := range 64 {
+				if moves&(1<<i) != 0 {
+					count++
+				}
+			}
+
+			if count != len(tt.expected) {
+				t.Errorf("got %d moves, want %d", count, len(tt.expected))
+			}
+
+			for _, exp := range tt.expected {
+				if moves&(1<<exp) == 0 {
+					t.Errorf("missing move to square %d", exp)
+				}
+			}
+		})
+	}
+}
+
 func TestZobristHash(t *testing.T) {
 	InitZobrist()
 

@@ -34,6 +34,8 @@ func (m Move) Flags() int {
 const (
 	FileA uint64 = 0x0101010101010101
 	FileH uint64 = 0x8080808080808080
+	Rank2 uint64 = 0x000000000000FF00
+	Rank7 uint64 = 0x00FF000000000000
 )
 
 // CalculateKnightMoves goes through every L direction
@@ -218,4 +220,54 @@ func CalculateBishopMoves(square int, occupancy Bitboard) Bitboard {
 // CalculateQueenMoves combines the rook moves and bishop moves, which basically means all directions.
 func CalculateQueenMoves(square int, occupancy Bitboard) Bitboard {
 	return CalculateRookMoves(square, occupancy) | CalculateBishopMoves(square, occupancy)
+}
+
+func CalculatePawnMoves(square int, color int, occupancy Bitboard, enPassantSquare int) Bitboard {
+	pawn := Bitboard(1 << square)
+	attacks := Bitboard(0)
+
+	if color == White {
+		// Single push: no pieces in front
+		if occupancy&(1<<(square+8)) == 0 {
+			attacks |= Bitboard(1 << (square + 8))
+			// Double push: pawn is on rank 2
+			if pawn&Bitboard(Rank2) != 0 && occupancy&(1<<(square+16)) == 0 {
+				attacks |= Bitboard(1 << (square + 16))
+			}
+		}
+		attacks |= (pawn &^ Bitboard(FileA)) << 7 // 1 left, 1 up
+		attacks |= (pawn &^ Bitboard(FileH)) << 9 // 1 right, 1 up
+
+		if enPassantSquare != -1 {
+			ep := Bitboard(1 << enPassantSquare)
+			diagonals := (pawn&^Bitboard(FileA))<<7 | (pawn&^Bitboard(FileH))<<9
+
+			if diagonals&ep != 0 {
+				attacks |= ep
+			}
+		}
+	} else {
+		// Case: black piece
+		// Single push: no pieces down
+		if occupancy&(1<<(square-8)) == 0 {
+			attacks |= Bitboard(1 << (square - 8))
+			// Double push: pawn is on rank 7
+			if pawn&Bitboard(Rank7) != 0 && occupancy&(1<<(square-16)) == 0 {
+				attacks |= Bitboard(1 << (square - 16))
+			}
+		}
+		attacks |= (pawn &^ Bitboard(FileA)) >> 7 // 1 right, 1 down
+		attacks |= (pawn &^ Bitboard(FileH)) >> 9 // 1 left, 1 down
+
+		if enPassantSquare != -1 {
+			ep := Bitboard(1 << enPassantSquare)
+			diagonals := (pawn&^Bitboard(FileA))>>7 | (pawn&^Bitboard(FileH))>>9
+
+			if diagonals&ep != 0 {
+				attacks |= ep
+			}
+		}
+	}
+
+	return attacks
 }
