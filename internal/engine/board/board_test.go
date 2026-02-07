@@ -384,6 +384,225 @@ func TestPawnMoves(t *testing.T) {
 	}
 }
 
+func TestMakeMove(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhitePawn] |= (1 << 12)
+	b.Occupancy[White] |= (1 << 12)
+	b.Occupancy[All] |= (1 << 12)
+	b.SideToMove = White
+	b.EnPassant = -1
+	b.CastleRights = 0
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(12, 28, 0)
+	b.MakeMove(move)
+
+	if b.Pieces[WhitePawn]&(1<<12) != 0 {
+		t.Error("Pawn still on e2")
+	}
+
+	if b.Pieces[WhitePawn]&(1<<28) == 0 {
+		t.Error("Pawn not on e4")
+	}
+
+	if b.EnPassant != 20 {
+		t.Errorf("En passant: got %d, want 20", b.EnPassant)
+	}
+
+	if b.SideToMove != Black {
+		t.Error("Side to move should be Black")
+	}
+}
+
+func TestMakeMoveWithCapture(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhitePawn] |= (1 << 28)
+	b.Occupancy[White] |= (1 << 28)
+	b.Occupancy[All] |= (1 << 28)
+
+	b.Pieces[BlackPawn] |= (1 << 35)
+	b.Occupancy[Black] |= (1 << 35)
+	b.Occupancy[All] |= (1 << 35)
+
+	b.SideToMove = White
+	b.EnPassant = -1
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(28, 35, 0)
+	b.MakeMove(move)
+
+	if b.Pieces[WhitePawn]&(1<<28) != 0 {
+		t.Error("White pawn still on e4")
+	}
+	if b.Pieces[WhitePawn]&(1<<35) == 0 {
+		t.Error("White pawn not on d5")
+	}
+
+	if b.Pieces[BlackPawn]&(1<<35) != 0 {
+		t.Error("Black pawn still on d5")
+	}
+
+	if b.Occupancy[Black]&(1<<35) != 0 {
+		t.Error("Black occupancy still on d5")
+	}
+
+	if b.HalfMove != 0 {
+		t.Errorf("HalfMove should be 0 after capture, got %d", b.HalfMove)
+	}
+}
+
+func TestCastleRightsRemoval(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhiteKing] |= (1 << 4)
+	b.Occupancy[White] |= (1 << 4)
+	b.Occupancy[All] |= (1 << 4)
+
+	b.SideToMove = White
+	b.CastleRights = WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(4, 12, 0)
+	b.MakeMove(move)
+
+	if b.CastleRights&WhiteKingSide != 0 {
+		t.Error("White should lose kingside castle rights")
+	}
+	if b.CastleRights&WhiteQueenSide != 0 {
+		t.Error("White should lose queenside castle rights")
+	}
+
+	if b.CastleRights&BlackKingSide == 0 {
+		t.Error("Black should keep kingside castle rights")
+	}
+	if b.CastleRights&BlackQueenSide == 0 {
+		t.Error("Black should keep queenside castle rights")
+	}
+}
+
+func TestRookMoveCastleRights(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhiteRook] |= (1 << 0)
+	b.Occupancy[White] |= (1 << 0)
+	b.Occupancy[All] |= (1 << 0)
+
+	b.SideToMove = White
+	b.CastleRights = WhiteKingSide | WhiteQueenSide
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(0, 8, 0)
+	b.MakeMove(move)
+
+	if b.CastleRights&WhiteQueenSide != 0 {
+		t.Error("White should lose queenside castle rights")
+	}
+	if b.CastleRights&WhiteKingSide == 0 {
+		t.Error("White should keep kingside castle rights")
+	}
+}
+
+func TestRookCaptureRemovesCastleRights(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhiteQueen] |= (1 << 35)
+	b.Occupancy[White] |= (1 << 35)
+	b.Occupancy[All] |= (1 << 35)
+
+	b.Pieces[BlackRook] |= (1 << 56)
+	b.Occupancy[Black] |= (1 << 56)
+	b.Occupancy[All] |= (1 << 56)
+
+	b.SideToMove = White
+	b.CastleRights = BlackKingSide | BlackQueenSide
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(35, 56, 0)
+	b.MakeMove(move)
+
+	if b.CastleRights&BlackQueenSide != 0 {
+		t.Error("Black should lose queenside castle rights after rook captured on a8")
+	}
+	if b.CastleRights&BlackKingSide == 0 {
+		t.Error("Black should keep kingside castle rights")
+	}
+}
+
+func TestEnPassantUpdatesOccupancyAll(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	b.Pieces[WhitePawn] |= (1 << 35)
+	b.Occupancy[White] |= (1 << 35)
+	b.Occupancy[All] |= (1 << 35)
+
+	b.Pieces[BlackPawn] |= (1 << 36)
+	b.Occupancy[Black] |= (1 << 36)
+	b.Occupancy[All] |= (1 << 36)
+
+	b.SideToMove = White
+	b.EnPassant = 44 // e6
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(35, 44, FlagEnPassant)
+	b.MakeMove(move)
+
+	if b.Occupancy[All]&(1<<36) != 0 {
+		t.Error("Occupancy[All] should not have piece on e5 after en passant")
+	}
+	if b.Occupancy[All]&(1<<44) == 0 {
+		t.Error("Occupancy[All] should have piece on e6")
+	}
+}
+
+func TestCastlingUpdatesOccupancyAll(t *testing.T) {
+	InitZobrist()
+
+	b := InitBoard()
+
+	// White king on e1, rook on h1
+	b.Pieces[WhiteKing] |= (1 << 4)
+	b.Occupancy[White] |= (1 << 4)
+	b.Occupancy[All] |= (1 << 4)
+
+	b.Pieces[WhiteRook] |= (1 << 7)
+	b.Occupancy[White] |= (1 << 7)
+	b.Occupancy[All] |= (1 << 7)
+
+	b.SideToMove = White
+	b.CastleRights = WhiteKingSide
+	b.Hash = b.CalculateHash()
+
+	move := NewMove(4, 6, FlagCastle)
+	b.MakeMove(move)
+
+	if b.Occupancy[All]&(1<<4) != 0 {
+		t.Error("Occupancy[All] should not have piece on e1")
+	}
+	if b.Occupancy[All]&(1<<7) != 0 {
+		t.Error("Occupancy[All] should not have piece on h1")
+	}
+	if b.Occupancy[All]&(1<<6) == 0 {
+		t.Error("Occupancy[All] should have piece on g1 (king)")
+	}
+	if b.Occupancy[All]&(1<<5) == 0 {
+		t.Error("Occupancy[All] should have piece on f1 (rook)")
+	}
+}
+
 func TestZobristHash(t *testing.T) {
 	InitZobrist()
 
