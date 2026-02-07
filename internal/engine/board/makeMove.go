@@ -1,5 +1,13 @@
 package board
 
+type Undo struct {
+	Captured     int
+	EnPassant    int
+	CastleRights int
+	HalfMove     int
+	Hash         uint64
+}
+
 // checkPieceMove returns the piece index from the board which is moving.
 func checkPieceMove(m Move, b *Board) int {
 	pIdx := -1
@@ -193,13 +201,22 @@ func checkFlags(pIdx int, m Move, b *Board) {
 	}
 }
 
-func (b *Board) MakeMove(m Move) {
+func (b *Board) MakeMove(m Move) Undo {
+	undo := Undo{
+		Captured:     -1,
+		EnPassant:    b.EnPassant,
+		CastleRights: b.CastleRights,
+		HalfMove:     b.HalfMove,
+		Hash:         b.Hash,
+	}
+
 	pIdx := checkPieceMove(m, b)
 	captureIdx := checkPieceCapture(m, b)
 
 	movePiece(pIdx, m, b)
 
 	if captureIdx != -1 {
+		undo.Captured = captureIdx
 		removeCaptured(captureIdx, m, b)
 	}
 
@@ -212,4 +229,80 @@ func (b *Board) MakeMove(m Move) {
 	b.Hash ^= zobristPieces[pIdx][m.To()]
 	b.Hash ^= zobristSideToMove
 	b.SideToMove ^= 1
+
+	return undo
+}
+
+func (b *Board) UnmakeMove(m Move, undo Undo) {
+	// Restore state
+	if b.SideToMove == White {
+		b.FullMove--
+	}
+	b.SideToMove ^= 1
+	b.Hash = undo.Hash
+	b.HalfMove = undo.HalfMove
+
+	// Reverse special flags
+	b.CastleRights = undo.CastleRights
+	b.EnPassant = undo.EnPassant
+	pIdx := checkPieceMove(m, b)
+	switch m.Flags() {
+	case FlagEnPassant:
+		if b.SideToMove == White {
+			b.Pieces[BlackPawn] |= (1 << (m.To() - 8))
+			b.Occupancy[Black] |= (1 << (m.To() - 8))
+			b.Occupancy[All] |= (1 << (m.To() - 8))
+		} else {
+			b.Pieces[WhitePawn] |= (1 << (m.To() + 8))
+			b.Occupancy[White] |= (1 << (m.To() + 8))
+			b.Occupancy[All] |= (1 << (m.To() + 8))
+		}
+	case FlagCastle:
+		var rookFrom, rookTo, rookIdx int
+		switch m.To() {
+		case 6:
+			rookFrom, rookTo, rookIdx = 7, 5, WhiteRook
+		case 2:
+			rookFrom, rookTo, rookIdx = 0, 3, WhiteRook
+		case 62:
+			rookFrom, rookTo, rookIdx = 63, 61, BlackRook
+		case 58:
+			rookFrom, rookTo, rookIdx = 56, 59, BlackRook
+		}
+
+		b.Pieces[rookIdx] |= (1 << rookFrom)
+		b.Pieces[rookIdx] &^= (1 << rookTo)
+		b.Occupancy[b.SideToMove] |= (1 << rookFrom)
+		b.Occupancy[b.SideToMove] &^= (1 << rookTo)
+		b.Occupancy[All] |= (1 << rookFrom)
+		b.Occupancy[All] &^= (1 << rookTo)
+	case FlagPromoteQueen, FlagPromoteBishop, FlagPromoteKnight, FlagPromoteRook:
+		promotionType := m.Flags() - 8
+
+		if b.SideToMove == Black {
+			b.Pieces[BlackQueen+promotionType] &^= (1 << m.To())
+			b.Pieces[BlackPawn] |= (1 << m.To())
+			pIdx = BlackPawn
+		} else {
+			b.Pieces[WhiteQueen+promotionType] &^= (1 << m.To())
+			b.Pieces[WhitePawn] |= (1 << m.To())
+			pIdx = WhitePawn
+		}
+	}
+
+	// Restore captured piece
+	if undo.Captured != -1 {
+		b.Pieces[undo.Captured] |= (1 << m.To())
+		b.Occupancy[b.SideToMove^1] |= (1 << m.To())
+		b.Occupancy[All] |= (1 << m.To())
+
+	}
+
+	// Move piece back
+	b.Pieces[pIdx] |= (1 << m.From())
+	b.Pieces[pIdx] &^= (1 << m.To())
+	b.Occupancy[b.SideToMove] |= (1 << m.From())
+	b.Occupancy[b.SideToMove] &^= (1 << m.To())
+	b.Occupancy[All] |= (1 << m.From())
+	b.Occupancy[All] &^= (1 << m.To())
 }
