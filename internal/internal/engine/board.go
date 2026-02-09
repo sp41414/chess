@@ -23,6 +23,7 @@ type Board struct {
 	CastleRights int
 }
 
+// Indexes of Board.Pieces Bitboard array
 const (
 	WhitePawn int = iota
 	WhiteKnight
@@ -38,6 +39,7 @@ const (
 	BlackKing
 )
 
+// 4-bit masks for Board.CastleRights
 const (
 	WhiteKingSide  int = 1 << 0 // 0001
 	WhiteQueenSide     = 1 << 1 // 0010
@@ -45,11 +47,15 @@ const (
 	BlackQueenSide     = 1 << 3 // 1000
 )
 
+// White and Black 0 and 1 for Board.SideToMove
 const (
 	White int = iota
 	Black
 )
 
+// ParseFEN takes a FEN string with format
+// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+// and fills the Board struct with the data parsed
 func (b *Board) ParseFEN(fen string) error {
 	parts := strings.Split(fen, " ")
 	if len(parts) != 6 {
@@ -153,6 +159,8 @@ outer:
 	return nil
 }
 
+// ExportFEN extracts board data and returns a string in format
+// "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 func (b *Board) ExportFEN() string {
 	fen := strings.Builder{}
 
@@ -217,6 +225,8 @@ func (b *Board) ExportFEN() string {
 	return fen.String()
 }
 
+// InitBoard returns an empty baord with optional
+// fen argument to fill the board with that data
 func InitBoard(fen string) *Board {
 	b := &Board{}
 	if fen != "" {
