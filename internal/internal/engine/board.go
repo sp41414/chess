@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"math/bits"
 	"strconv"
 	"strings"
 )
@@ -11,6 +12,8 @@ type Bitboard uint64
 type Board struct {
 	// Every piece type for both colors
 	Pieces [12]Bitboard
+	// Occupancy[0]: White, Occupancy[1]: Black, Occupancy[2]: All
+	Occupancy [3]Bitboard
 	// Index 0-63, -1 if no target
 	EnPassant int
 	// 0: White, 1: Black
@@ -47,11 +50,55 @@ const (
 	BlackQueenSide     = 1 << 3 // 1000
 )
 
-// White and Black 0 and 1 for Board.SideToMove
+// White and Black And All, 0 and 1 and 2, for Board.SideToMove and Board.Occupancy
 const (
 	White int = iota
 	Black
+	All
 )
+
+// Helper functions for Bitboard
+
+// Occupied returns true if the square is occupied
+func (b Bitboard) Occupied(sq int) bool {
+	return b&(1<<sq) != 0
+}
+
+// Set sets a bit at square to 1
+func (b *Bitboard) Set(sq int) {
+	*b |= 1 << sq
+}
+
+// Clear clears a bit at square to 0
+func (b *Bitboard) Clear(sq int) {
+	*b &^= (1 << sq)
+}
+
+// Toggle toggles a bit at square to its opposite
+func (b *Bitboard) Toggle(sq int) {
+	*b ^= (1 << sq)
+}
+
+// Count returns the number of bits set in the Bitboard
+func (b Bitboard) Count() int {
+	return bits.OnesCount64(uint64(b))
+}
+
+// Get least significant bit, or first piece, of bitboard
+func (b Bitboard) LSB() int {
+	return bits.TrailingZeros64(uint64(b))
+}
+
+func (b *Bitboard) PopLSB() int {
+	sq := bits.TrailingZeros64(uint64(*b))
+	*b &= *b - 1
+	return sq
+}
+
+func (b Bitboard) String() string {
+	s := strconv.FormatUint(uint64(b), 2)
+	return strings.Repeat("0", 64-len(s)) + s
+}
 
 // ParseFEN takes a FEN string with format
 // "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
