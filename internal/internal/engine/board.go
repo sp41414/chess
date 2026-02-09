@@ -203,6 +203,16 @@ outer:
 		return fmt.Errorf("invalid FEN: fullmove number: %v", err)
 	}
 
+	for i := WhitePawn; i <= WhiteKing; i++ {
+		b.Occupancy[White] |= b.Pieces[i]
+	}
+
+	for i := BlackPawn; i <= BlackKing; i++ {
+		b.Occupancy[Black] |= b.Pieces[i]
+	}
+
+	b.Occupancy[All] = b.Occupancy[White] | b.Occupancy[Black]
+
 	return nil
 }
 
