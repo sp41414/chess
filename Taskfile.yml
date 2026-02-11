@@ -4,12 +4,12 @@ tasks:
   build:
     desc: Build the production bin
     cmds:
-      - go build -ldflags="-s -w" -o dist/chess main.go
+      - wails build -ldflags="-s -w"
 
   dev:
-    desc: Run main go file
+    desc: Run wails in development 
     cmds:
-      - go run main.go
+      - wails dev
   
   clean:
     desc: Removes the dist folder
