@@ -9,7 +9,7 @@ const (
 	// Basic move flags
 	QuietMove  = 0
 	DoublePush = 1
-	KCastle    = 1
+	KCastle    = 2
 	QCastle    = 3
 	Capture    = 4
 	EPCapture  = 5

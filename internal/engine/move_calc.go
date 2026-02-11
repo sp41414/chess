@@ -1,19 +1,88 @@
 package engine
 
 var (
-	KnightMoves    []uint64
-	BlackPawnMoves []uint64
-	WhitePawnMoves []uint64
-	KingMoves      []uint64
+	KnightMoves    [64]Bitboard
+	BlackPawnMoves [64]Bitboard
+	WhitePawnMoves [64]Bitboard
+	KingMoves      [64]Bitboard
 )
 
 func InitLookupTables() {
-	KnightMoves = make([]uint64, 64)
-	BlackPawnMoves = make([]uint64, 64)
-	WhitePawnMoves = make([]uint64, 64)
-	KingMoves = make([]uint64, 64)
-
 	for sq := range 64 {
-		// TODO: calculate knight moves first
+		KnightMoves[sq] = KnightAttacks(sq)
+		BlackPawnMoves[sq] = PawnAttacks(sq, Black)
+		WhitePawnMoves[sq] = PawnAttacks(sq, White)
+		KingMoves[sq] = KingAttacks(sq)
 	}
+}
+
+func KnightAttacks(sq int) Bitboard {
+	var bitboard Bitboard
+	r := sq / 8
+	f := sq % 8
+
+	offsets := []struct {
+		dr, df int
+	}{
+		{2, 1}, {2, -1}, {-2, 1}, {-2, -1},
+		{1, 2}, {1, -2}, {-1, 2}, {-1, -2},
+	}
+
+	for _, o := range offsets {
+		dr, df := r+o.dr, f+o.df
+
+		if dr >= 0 && dr < 8 && df >= 0 && df < 8 {
+			bitboard.Set(dr*8 + df)
+		}
+	}
+	return bitboard
+}
+
+func PawnAttacks(sq, color int) Bitboard {
+	var bitboard Bitboard
+	r := sq / 8
+	f := sq % 8
+
+	if color == White {
+		if r < 7 {
+			if f > 0 {
+				bitboard.Set((r+1)*8 + f - 1)
+			}
+			if f < 7 {
+				bitboard.Set((r+1)*8 + (f + 1))
+			}
+		}
+	} else {
+		if r > 0 {
+			if f > 0 {
+				bitboard.Set((r-1)*8 + (f - 1))
+			}
+			if f < 7 {
+				bitboard.Set((r-1)*8 + (f + 1))
+			}
+		}
+	}
+
+	return bitboard
+}
+
+func KingAttacks(sq int) Bitboard {
+	var bitboard Bitboard
+	r := sq / 8
+	f := sq % 8
+
+	offsets := []struct{ dr, df int }{
+		{1, 0}, {-1, 0}, {0, 1}, {0, -1},
+		{1, 1}, {1, -1}, {-1, 1}, {-1, -1},
+	}
+
+	for _, o := range offsets {
+		dr, df := r+o.dr, f+o.df
+
+		if dr >= 0 && dr <= 7 && df >= 0 && df <= 7 {
+			bitboard.Set(dr*8 + df)
+		}
+	}
+
+	return bitboard
 }
