@@ -170,3 +170,91 @@ func (b *Board) MakeMove(m Move) Undo {
 
 	return undo
 }
+
+// UnmakeMove undoes a move on the board, using the undo struct
+// returned by MakeMove and the move to be unmade.
+func (b *Board) UnmakeMove(m Move, undo Undo) {
+	if b.SideToMove == White {
+		b.FullMove--
+		b.SideToMove = Black
+	} else {
+		b.SideToMove = White
+	}
+
+	from, to, flags := m.From(), m.To(), m.Flags()
+
+	pIdx := -1
+	for i := range 12 {
+		if b.Pieces[i].Occupied(to) {
+			pIdx = i
+			break
+		}
+	}
+
+	b.Pieces[pIdx].Clear(to)
+	b.Occupancy[b.SideToMove].Clear(to)
+
+	if m.IsPromotion() {
+		pawnIdx := WhitePawn
+		if b.SideToMove == Black {
+			pawnIdx = BlackPawn
+		}
+		b.Pieces[pawnIdx].Set(from)
+		b.Occupancy[b.SideToMove].Set(from)
+	} else {
+		b.Pieces[pIdx].Set(from)
+		b.Occupancy[b.SideToMove].Set(from)
+	}
+
+	if flags == EPCapture {
+		capSq := to - 8
+		capIdx := BlackPawn
+		if b.SideToMove == Black {
+			capSq = to + 8
+			capIdx = WhitePawn
+			b.Occupancy[White].Set(capSq)
+		} else {
+			b.Occupancy[Black].Set(capSq)
+		}
+		b.Pieces[capIdx].Set(capSq)
+	} else if undo.Captured != -1 {
+		b.Pieces[undo.Captured].Set(to)
+		if b.SideToMove == White {
+			b.Occupancy[Black].Set(to)
+		} else {
+			b.Occupancy[White].Set(to)
+		}
+	}
+
+	if flags == KCastle || flags == QCastle {
+		var rFrom, rTo int
+		if flags == KCastle {
+			if b.SideToMove == White {
+				rFrom, rTo = 7, 5
+			} else {
+				rFrom, rTo = 63, 61
+			}
+		} else {
+			if b.SideToMove == White {
+				rFrom, rTo = 0, 3
+			} else {
+				rFrom, rTo = 56, 59
+			}
+		}
+
+		rIdx := WhiteRook
+		if b.SideToMove == Black {
+			rIdx = BlackRook
+		}
+		b.Pieces[rIdx].Clear(rTo)
+		b.Pieces[rIdx].Set(rFrom)
+		b.Occupancy[b.SideToMove].Clear(rTo)
+		b.Occupancy[b.SideToMove].Set(rFrom)
+	}
+
+	b.CastleRights = undo.CastleRights
+	b.EnPassant = undo.EnPassant
+	b.HalfMove = undo.HalfMove
+
+	b.Occupancy[All] = b.Occupancy[White] | b.Occupancy[Black]
+}
