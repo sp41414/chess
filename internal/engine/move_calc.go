@@ -86,3 +86,19 @@ func KingAttacks(sq int) Bitboard {
 
 	return bitboard
 }
+
+func RookAttacks(sq int, occupancy Bitboard) Bitboard {
+	occ := occupancy & RookMagics[sq].Mask
+	idx := (uint64(occ) * RookMagics[sq].MagicNum) >> RookMagics[sq].Shift
+	return RookMoves[sq][idx]
+}
+
+func BishopAttacks(sq int, occupancy Bitboard) Bitboard {
+	occ := occupancy & BishopMagics[sq].Mask
+	idx := (uint64(occ) * BishopMagics[sq].MagicNum) >> BishopMagics[sq].Shift
+	return BishopMoves[sq][idx]
+}
+
+func QueenAttacks(sq int, occupancy Bitboard) Bitboard {
+	return RookAttacks(sq, occupancy) | BishopAttacks(sq, occupancy)
+}
