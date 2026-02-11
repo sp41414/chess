@@ -27,30 +27,38 @@ const (
 	QPromotionCapture = 15
 )
 
+// NewMove composes a move uint16 from from, to, and flags.
 func NewMove(from, to, flags int) Move {
 	return Move((from & 0x3F) | ((to & 0x3F) << 6) | ((flags & 0xF) << 12))
 }
 
+// From returns the from square, 0-5th bits of the move.
 func (m Move) From() int {
 	return int(m & 0x3F)
 }
 
+// To returns the to square, 6-11th bits of the move.
 func (m Move) To() int {
 	return int((m >> 6) & 0x3F)
 }
 
+// Flags returns the flags, 12-15th bits of the move.
 func (m Move) Flags() int {
 	return int((m >> 12) & 0xF)
 }
 
+// IsCapture returns true if Capture flag bit is set.
 func (m Move) IsCapture() bool {
 	return (m.Flags() & Capture) != 0
 }
 
+// IsPromotion returns true if any promotion flag bit is set.
 func (m Move) IsPromotion() bool {
 	return m.Flags() >= 8
 }
 
+// IsSpecial returns true if the move is not a quiet move
+// from flags.
 func (m Move) IsSpecial() bool {
 	return m.Flags() != QuietMove
 }

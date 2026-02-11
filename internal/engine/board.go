@@ -24,6 +24,8 @@ type Board struct {
 	FullMove int
 	// 4-bit Mask: 0001 (WK) 0010 (WQ) 0100 (BK), 1000 (BQ)
 	CastleRights int
+	// Undo stack
+	StateHistory []Undo
 }
 
 // Indexes of Board.Pieces Bitboard array
