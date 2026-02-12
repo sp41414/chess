@@ -123,21 +123,105 @@ func (b *Board) genKingMoves(moves *[]Move) {
 	}
 }
 
-func (b *Board) GenerateMoves() []Move {
-	moves := make([]Move, 0, 64)
+func (b *Board) genPawnMoves(moves *[]Move) {
+	offset := b.SideToMove * 6
+	pawns := b.Pieces[offset]
 
-	// TODO: pawn moves: en passant, promotion
-	b.genKnightMoves(&moves)
-	b.genBishopMoves(&moves)
-	b.genRookMoves(&moves)
-	b.genQueenMoves(&moves)
-	b.genKingMoves(&moves)
+	for pawns != 0 {
+		sq := pawns.PopLSB()
+		rank := sq / 8
+
+		// Single push
+		if b.SideToMove == White {
+			to := sq + 8
+			if to <= 63 && !b.Occupancy[All].Occupied(to) {
+				if rank == 6 {
+					*moves = append(*moves, NewMove(sq, to, NPromotion))
+					*moves = append(*moves, NewMove(sq, to, BPromotion))
+					*moves = append(*moves, NewMove(sq, to, RPromotion))
+					*moves = append(*moves, NewMove(sq, to, QPromotion))
+				} else {
+					*moves = append(*moves, NewMove(sq, to, QuietMove))
+				}
+			}
+		} else {
+			to := sq - 8
+			if to >= 0 && !b.Occupancy[All].Occupied(to) {
+				if rank == 1 {
+					*moves = append(*moves, NewMove(sq, to, NPromotion))
+					*moves = append(*moves, NewMove(sq, to, BPromotion))
+					*moves = append(*moves, NewMove(sq, to, RPromotion))
+					*moves = append(*moves, NewMove(sq, to, QPromotion))
+				} else {
+					*moves = append(*moves, NewMove(sq, to, QuietMove))
+				}
+			}
+		}
+
+		// Double push
+		if b.SideToMove == White && rank == 1 {
+			if !b.Occupancy[All].Occupied(sq+8) && !b.Occupancy[All].Occupied(sq+16) {
+				*moves = append(*moves, NewMove(sq, sq+16, DoublePush))
+			}
+		} else if b.SideToMove == Black && rank == 6 {
+			if !b.Occupancy[All].Occupied(sq-8) && !b.Occupancy[All].Occupied(sq-16) {
+				*moves = append(*moves, NewMove(sq, sq-16, DoublePush))
+			}
+		}
+
+		// Diagonal captures
+		attacks := PawnAttacks(sq, b.SideToMove) & b.Occupancy[b.SideToMove^1]
+		for attacks != 0 {
+			to := attacks.PopLSB()
+			if b.SideToMove == White && rank == 6 {
+				*moves = append(*moves, NewMove(sq, to, NPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, BPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, RPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, QPromotionCapture))
+			} else if b.SideToMove == Black && rank == 1 {
+				*moves = append(*moves, NewMove(sq, to, NPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, BPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, RPromotionCapture))
+				*moves = append(*moves, NewMove(sq, to, QPromotionCapture))
+			} else {
+				*moves = append(*moves, NewMove(sq, to, Capture))
+			}
+		}
+
+		// En passant
+		if b.EnPassant != -1 {
+			epAttacks := PawnAttacks(sq, b.SideToMove)
+			if epAttacks.Occupied(b.EnPassant) {
+				*moves = append(*moves, NewMove(sq, b.EnPassant, EPCapture))
+			}
+		}
+	}
+}
+
+func (b *Board) GenerateMoves() []Move {
+	pseudoLegalMoves := make([]Move, 0, 64)
+
+	b.genPawnMoves(&pseudoLegalMoves)
+	b.genKnightMoves(&pseudoLegalMoves)
+	b.genBishopMoves(&pseudoLegalMoves)
+	b.genRookMoves(&pseudoLegalMoves)
+	b.genQueenMoves(&pseudoLegalMoves)
+	b.genKingMoves(&pseudoLegalMoves)
 	// TODO: castling moves: KS, QS, check if enemy controlled
-	// TODO: check if king is in check, make sure no illegal moves
-	// unless a piece defends the king or the king moves away
-	// later on, we can check if the king is not in check with no legal moves
-	// for stalemate, and then we can check if the king is in check with no legal moves
-	// for checkmate.
+
+	moves := make([]Move, 0, len(pseudoLegalMoves))
+	offset := b.SideToMove * 6
+
+	for _, move := range pseudoLegalMoves {
+		undo := b.MakeMove(move)
+		king := b.Pieces[offset+5].LSB()
+
+		if !b.IsSqAttacked(king, b.SideToMove) {
+			moves = append(moves, move)
+		}
+
+		b.UnmakeMove(move, undo)
+	}
 
 	return moves
 }
