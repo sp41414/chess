@@ -14,6 +14,10 @@ type Board struct {
 	Pieces [12]Bitboard
 	// Occupancy[0]: White, Occupancy[1]: Black, Occupancy[2]: All
 	Occupancy [3]Bitboard
+	// Undo stack
+	StateHistory []Undo
+	// Moves made in the current game
+	MoveHistory []Move
 	// Index 0-63, -1 if no target
 	EnPassant int
 	// 0: White, 1: Black
@@ -24,8 +28,6 @@ type Board struct {
 	FullMove int
 	// 4-bit Mask: 0001 (WK) 0010 (WQ) 0100 (BK), 1000 (BQ)
 	CastleRights int
-	// Undo stack
-	StateHistory []Undo
 }
 
 // Indexes of Board.Pieces Bitboard array
