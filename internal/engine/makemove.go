@@ -63,11 +63,11 @@ func (b *Board) MakeMove(m Move) Undo {
 	// EnPassant check on actual EnPassant flag
 	if flags == EPCapture {
 		if b.SideToMove == White {
-			b.Pieces[BlackPawn].Clear(b.EnPassant - 8)
-			b.Occupancy[Black].Clear(b.EnPassant - 8)
+			b.Pieces[BlackPawn].Clear(to - 8)
+			b.Occupancy[Black].Clear(to - 8)
 		} else {
-			b.Pieces[WhitePawn].Clear(b.EnPassant + 8)
-			b.Occupancy[White].Clear(b.EnPassant + 8)
+			b.Pieces[WhitePawn].Clear(to + 8)
+			b.Occupancy[White].Clear(to + 8)
 		}
 	}
 
