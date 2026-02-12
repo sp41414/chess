@@ -18,6 +18,8 @@ type Board struct {
 	StateHistory []Undo
 	// Moves made in the current game
 	MoveHistory []Move
+	// PositionCount for threefold repetition with the position key (FEN)
+	PositionCount map[string]int
 	// Index 0-63, -1 if no target
 	EnPassant int
 	// 0: White, 1: Black
@@ -283,13 +285,62 @@ func (b *Board) ExportFEN() string {
 		}
 	}
 
+	if b.SideToMove == White {
+		fen.WriteString(" w ")
+	} else {
+		fen.WriteString(" b ")
+	}
+
+	if b.CastleRights == 0 {
+		fen.WriteString("-")
+	} else {
+		if b.CastleRights&WhiteKingSide != 0 {
+			fen.WriteRune('K')
+		}
+		if b.CastleRights&WhiteQueenSide != 0 {
+			fen.WriteRune('Q')
+		}
+		if b.CastleRights&BlackKingSide != 0 {
+			fen.WriteRune('k')
+		}
+		if b.CastleRights&BlackQueenSide != 0 {
+			fen.WriteRune('q')
+		}
+	}
+	fen.WriteString(" ")
+
+	if b.EnPassant == -1 {
+		fen.WriteString("- ")
+	} else {
+		file := rune('a' + (b.EnPassant % 8))
+		rank := rune('1' + (b.EnPassant / 8))
+		fen.WriteRune(file)
+		fen.WriteRune(rank)
+		fen.WriteString(" ")
+	}
+
+	fen.WriteString(strconv.Itoa(b.HalfMove))
+	fen.WriteString(" ")
+	fen.WriteString(strconv.Itoa(b.FullMove))
+
 	return fen.String()
+}
+
+// GetPositionKey returns the current board state in FEN format
+// without the halfmove and fullmove counters
+func (b *Board) GetPositionKey() string {
+	fen := b.ExportFEN()
+
+	parts := strings.Split(fen, " ")
+	return strings.Join(parts[:4], " ")
 }
 
 // InitBoard returns an empty baord with optional
 // fen argument to fill the board with that data
 func InitBoard(fen string) *Board {
-	b := &Board{}
+	b := &Board{
+		PositionCount: make(map[string]int),
+	}
 	if fen != "" {
 		b.ParseFEN(fen)
 	}
