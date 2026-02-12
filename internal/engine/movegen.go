@@ -111,6 +111,22 @@ func (b *Board) genKingMoves(moves *[]Move) {
 	kings := b.Pieces[offset+5]
 	for kings != 0 {
 		sq := kings.PopLSB()
+		// Castling
+		if b.SideToMove == White {
+			if b.CastleRights&WhiteKingSide != 0 && !b.Occupancy[All].Occupied(5) && !b.Occupancy[All].Occupied(6) && !b.IsSqAttacked(4, Black) && !b.IsSqAttacked(5, Black) && !b.IsSqAttacked(6, Black) {
+				*moves = append(*moves, NewMove(sq, 6, KCastle))
+			}
+			if b.CastleRights&WhiteQueenSide != 0 && !b.Occupancy[All].Occupied(1) && !b.Occupancy[All].Occupied(2) && !b.Occupancy[All].Occupied(3) && !b.IsSqAttacked(4, Black) && !b.IsSqAttacked(3, Black) && !b.IsSqAttacked(2, Black) {
+				*moves = append(*moves, NewMove(sq, 2, QCastle))
+			}
+		} else {
+			if b.CastleRights&BlackKingSide != 0 && !b.Occupancy[All].Occupied(61) && !b.Occupancy[All].Occupied(62) && !b.IsSqAttacked(60, White) && !b.IsSqAttacked(61, White) && !b.IsSqAttacked(62, White) {
+				*moves = append(*moves, NewMove(sq, 62, KCastle))
+			}
+			if b.CastleRights&BlackQueenSide != 0 && !b.Occupancy[All].Occupied(57) && !b.Occupancy[All].Occupied(58) && !b.Occupancy[All].Occupied(59) && !b.IsSqAttacked(60, White) && !b.IsSqAttacked(59, White) && !b.IsSqAttacked(58, White) {
+				*moves = append(*moves, NewMove(sq, 58, QCastle))
+			}
+		}
 		attacks := KingAttacks(sq) & ^b.Occupancy[b.SideToMove]
 		for attacks != 0 {
 			to := attacks.PopLSB()
@@ -201,14 +217,19 @@ func (b *Board) genPawnMoves(moves *[]Move) {
 func (b *Board) GenerateMoves() []Move {
 	pseudoLegalMoves := make([]Move, 0, 64)
 
+	// Generates the pseudo-legal moves
+	// such as captures, double pushes, en passant, promotions
+	// castles, and quiet moves.
 	b.genPawnMoves(&pseudoLegalMoves)
 	b.genKnightMoves(&pseudoLegalMoves)
 	b.genBishopMoves(&pseudoLegalMoves)
 	b.genRookMoves(&pseudoLegalMoves)
 	b.genQueenMoves(&pseudoLegalMoves)
 	b.genKingMoves(&pseudoLegalMoves)
-	// TODO: castling moves: KS, QS, check if enemy controlled
 
+	// makes the move while checking if the king is in check
+	// and if the king is not in check, the move is added to the new list
+	// so that we can filter out illegal moves
 	moves := make([]Move, 0, len(pseudoLegalMoves))
 	offset := b.SideToMove * 6
 
