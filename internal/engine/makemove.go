@@ -168,6 +168,8 @@ func (b *Board) MakeMove(m Move) Undo {
 
 	b.Occupancy[All] = b.Occupancy[White] | b.Occupancy[Black]
 
+	b.PositionCount[b.GetPositionKey()]++
+
 	return undo
 }
 
@@ -257,4 +259,10 @@ func (b *Board) UnmakeMove(m Move, undo Undo) {
 	b.HalfMove = undo.HalfMove
 
 	b.Occupancy[All] = b.Occupancy[White] | b.Occupancy[Black]
+
+	key := b.GetPositionKey()
+	b.PositionCount[key]--
+	if b.PositionCount[key] == 0 {
+		delete(b.PositionCount, key)
+	}
 }
