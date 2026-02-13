@@ -27,6 +27,52 @@ func (a *App) startup(ctx context.Context) {
 	a.board = engine.Init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 }
 
+// wrappers for wails bindings from go to the frontend
+
+func (a *App) GetFEN() string {
+	return a.board.GetFEN()
+}
+
+func (a *App) GetMoves() []engine.Move {
+	return a.board.GetMoves()
+}
+
+func (a *App) IsInCheck() bool {
+	return a.board.IsInCheck()
+}
+
+func (a *App) IsCheckmate() bool {
+	return a.board.IsCheckmate()
+}
+
+func (a *App) IsStalemate() bool {
+	return a.board.IsStalemate()
+}
+
+func (a *App) IsFiftyMoveRule() bool {
+	return a.board.IsFiftyMoveRule()
+}
+
+func (a *App) IsInsufficientMaterial() bool {
+	return a.board.IsInsufficientMaterial()
+}
+
+func (a *App) IsThreefoldRepetition() bool {
+	return a.board.IsThreefoldRepetition()
+}
+
+func (a *App) IsDraw() bool {
+	return a.board.IsDraw()
+}
+
+func (a *App) PlayMove(m engine.Move) engine.Undo {
+	return a.board.PlayMove(m)
+}
+
+func (a *App) UndoMove(m engine.Move, u engine.Undo) {
+	a.board.UndoMove(m, u)
+}
+
 func main() {
 	app := NewApp()
 
@@ -36,7 +82,7 @@ func main() {
 			Assets: assets,
 		},
 		OnStartup: app.startup,
-		Bind: []interface{}{
+		Bind: []any{
 			app,
 		},
 	})

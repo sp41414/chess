@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "name": "Chess",
-    "frontend:dir": "internal/ui",
+    "frontend:dir": "./internal/ui",
     "frontend:install": "pnpm install",
     "frontend:build": "pnpm run build",
     "frontend:dev:watcher": "pnpm run dev"
