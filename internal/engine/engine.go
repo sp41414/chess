@@ -98,6 +98,23 @@ func (b *Board) GetMoves() []Move {
 	return b.GenerateMoves()
 }
 
+// GetPieces returns a map of squares to piece types found in the frontend as SVGs
+func (b *Board) GetPieces() map[int]string {
+	pieces := make(map[int]string)
+	chars := [12]string{"wP", "wN", "wB", "wR", "wQ", "wK", "bP", "bN", "bB", "bR", "bQ", "bK"}
+
+	for sq := range 64 {
+		for i := range 12 {
+			if b.Pieces[i].Occupied(sq) {
+				pieces[sq] = chars[i]
+				break
+			}
+		}
+	}
+
+	return pieces
+}
+
 // PlayMove plays the given move on the board and returns the resulting
 // board state to undo the move.
 func (b *Board) PlayMove(m Move) Undo {

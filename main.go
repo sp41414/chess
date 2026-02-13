@@ -19,12 +19,13 @@ type App struct {
 var assets embed.FS
 
 func NewApp() *App {
-	return &App{}
+	return &App{
+		board: engine.Init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"),
+	}
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	a.board = engine.Init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
 }
 
 // wrappers for wails bindings from go to the frontend
@@ -71,6 +72,10 @@ func (a *App) PlayMove(m engine.Move) engine.Undo {
 
 func (a *App) UndoMove(m engine.Move, u engine.Undo) {
 	a.board.UndoMove(m, u)
+}
+
+func (a *App) GetPieces() map[int]string {
+	return a.board.GetPieces()
 }
 
 func main() {

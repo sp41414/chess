@@ -28,6 +28,7 @@ export type BoardState = {
 export type BoardContextType = {
     state: BoardState;
     setState: React.Dispatch<React.SetStateAction<BoardState>>;
+    loadBoard: () => Promise<void>;
 };
 
 export type FenString =
