@@ -43,7 +43,7 @@ func (b *Board) MakeMove(m Move) Undo {
 	b.Pieces[pIdx].Set(to)
 
 	// Capture, remove the captured piece and update occupancy
-	if flags == Capture {
+	if m.IsCapture() && flags != EPCapture {
 		b.Pieces[cIdx].Clear(to)
 		if b.SideToMove == White {
 			b.Occupancy[Black].Clear(to)
@@ -135,12 +135,12 @@ func (b *Board) MakeMove(m Move) Undo {
 	// Promotion
 	if m.IsPromotion() {
 		b.Pieces[pIdx].Clear(to)
-		pType := flags - 8
+		pType := flags & 0x3
 
 		if b.SideToMove == White {
-			b.Pieces[WhiteQueen+pType].Set(to)
+			b.Pieces[WhiteKnight+pType].Set(to)
 		} else {
-			b.Pieces[BlackQueen+pType].Set(to)
+			b.Pieces[BlackKnight+pType].Set(to)
 		}
 	}
 

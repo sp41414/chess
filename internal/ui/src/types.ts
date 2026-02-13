@@ -31,6 +31,11 @@ export type BoardContextType = {
     loadBoard: () => Promise<void>;
 };
 
+export type Move = {
+    from: number;
+    to: number;
+};
+
 export type FenString =
     | "p"
     | "r"
