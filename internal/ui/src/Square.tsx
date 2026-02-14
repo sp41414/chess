@@ -51,6 +51,14 @@ function Square({
           }
         : undefined;
 
+    const file = idx % 8;
+    const rank = Math.floor(idx / 8);
+    const isBottomRank = rank === 0;
+    const isLeftFile = file === 0;
+
+    const fileLabel = String.fromCharCode(97 + file); // a-h
+    const rankLabel = (rank + 1).toString(); // 1-8
+
     return (
         <div
             ref={setDropRef}
@@ -68,6 +76,24 @@ function Square({
                         : "bg-board-light"
             }`}
         >
+            {isLeftFile && (
+                <div
+                    className={`absolute top-0.5 left-1 text-xs md:text-base lg:text-lg font-semibold ${
+                        isDark ? "text-board-light" : "text-board-dark"
+                    }`}
+                >
+                    {rankLabel}
+                </div>
+            )}
+            {isBottomRank && (
+                <div
+                    className={`absolute bottom-0.5 right-1 text-xs md:text-base lg:text-lg font-semibold ${
+                        isDark ? "text-board-light" : "text-board-dark"
+                    }`}
+                >
+                    {fileLabel}
+                </div>
+            )}
             {isMarked && (
                 <div className="absolute inset-0 bg-red-500/40 z-0 pointer-events-none" />
             )}
