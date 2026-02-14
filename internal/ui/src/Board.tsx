@@ -8,18 +8,22 @@ import {
 } from "../wailsjs/go/main/App";
 import { useBoard } from "./BoardContext";
 import { pieces } from "./pieces";
-import type { Move } from "./types";
+import type { Move, SquareIndex } from "./types";
 import Promotion from "./Promotion";
+import Arrows from "./Arrows";
 
 function Board() {
     const RANKS = [7, 6, 5, 4, 3, 2, 1, 0];
     const FILES = [0, 1, 2, 3, 4, 5, 6, 7];
 
     const { state, setState, loadBoard } = useBoard();
-    const [availableMoves, setAvailableMoves] = useState<number[]>([]);
-    const [kingInCheckSq, setKingInCheckSq] = useState<number | null>(null);
+    const [availableMoves, setAvailableMoves] = useState<SquareIndex[]>([]);
+    const [kingInCheckSq, setKingInCheckSq] = useState<SquareIndex | null>(
+        null,
+    );
     const [lastMove, setLastMove] = useState<Move | null>(null);
     const [promotion, setPromotion] = useState<Move | null>(null);
+    const [rightClickStart, setRightClickStart] = useState<number | null>(null);
 
     const getMove = (move: number) => ({
         from: move & 0x3f,
@@ -101,6 +105,11 @@ function Board() {
     }
 
     async function handleSquareClick(sq: number) {
+        setState((prev) => ({
+            ...prev,
+            marks: [],
+            arrows: [],
+        }));
         if (state.selectedSquare === null) {
             await selectPiece(sq);
         } else {
@@ -126,9 +135,50 @@ function Board() {
         await findKingSq();
     }
 
+    function handleRightMouseDown(sq: number, e: React.MouseEvent) {
+        e.preventDefault();
+        setRightClickStart(sq);
+    }
+
+    function handleRightMouseUp(sq: number, e: React.MouseEvent) {
+        e.preventDefault();
+
+        if (rightClickStart === null) return;
+
+        if (rightClickStart === sq) {
+            setState((prev) => ({
+                ...prev,
+                marks: prev.marks.includes(sq)
+                    ? prev.marks.filter((m) => m !== sq)
+                    : [...prev.marks, sq],
+            }));
+        } else {
+            const existingArrowIndex = state.arrows.findIndex(
+                (a) => a.from === rightClickStart && a.to === sq,
+            );
+
+            if (existingArrowIndex >= 0) {
+                setState((prev) => ({
+                    ...prev,
+                    arrows: prev.arrows.filter(
+                        (_, i) => i !== existingArrowIndex,
+                    ),
+                }));
+            } else {
+                setState((prev) => ({
+                    ...prev,
+                    arrows: [...prev.arrows, { from: rightClickStart, to: sq }],
+                }));
+            }
+        }
+
+        setRightClickStart(null);
+    }
+
     return (
         <>
-            <div className="grid grid-cols-8 grid-rows-8 aspect-square select-none max-w-[min(90vw,90vh)] max-h-[min(90vw,90vh)]">
+            <div className="grid grid-cols-8 grid-rows-8 aspect-square select-none max-w-[min(90vw,90vh)] max-h-[min(90vw,90vh)] relative">
+                <Arrows />
                 {RANKS.map((rank) =>
                     FILES.map((file) => {
                         const idx = rank * 8 + file;
@@ -144,7 +194,15 @@ function Board() {
                         return (
                             <div
                                 key={idx}
+                                onMouseDown={(e) =>
+                                    e.button === 2 &&
+                                    handleRightMouseDown(idx, e)
+                                }
+                                onMouseUp={(e) =>
+                                    e.button === 2 && handleRightMouseUp(idx, e)
+                                }
                                 onClick={() => handleSquareClick(idx)}
+                                onContextMenu={(e) => e.preventDefault()}
                                 className={`relative flex items-center justify-center ${
                                     isLastMove
                                         ? "bg-board-selected/80"
@@ -155,6 +213,9 @@ function Board() {
                                             : "bg-board-light"
                                 }`}
                             >
+                                {state.marks.includes(idx) && (
+                                    <div className="absolute inset-0 bg-red-500/40 z-0 pointer-events-none" />
+                                )}
                                 {isKingInCheck && (
                                     <div className="absolute w-full h-full rounded-full bg-red-500/70 blur-sm z-0 will-change-transform" />
                                 )}

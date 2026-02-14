@@ -1,7 +1,6 @@
 export type Arrow = {
-    startSquare: string;
-    endSquare: string;
-    color: string;
+    from: number;
+    to: number;
 };
 
 export type PieceRender = Record<
@@ -34,6 +33,7 @@ export type BoardContextType = {
 export type Move = {
     from: number;
     to: number;
+    flags?: number;
 };
 
 export type FenString =
