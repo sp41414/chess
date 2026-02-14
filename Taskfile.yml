@@ -2,16 +2,48 @@ version: '3'
 
 tasks:
   build:
-    desc: Build the production bin
+    desc: Build the production binary for current platform
     cmds:
       - wails build -ldflags="-s -w"
 
+  build:windows:
+    desc: Build for Windows (amd64)
+    cmds:
+      - wails build -platform windows/amd64 -ldflags="-s -w -H windowsgui"
+
+  build:macos:
+    desc: Build for macOS (universal binary - Intel + Apple Silicon)
+    cmds:
+      - wails build -platform darwin/universal -ldflags="-s -w"
+
+  build:macos:amd64:
+    desc: Build for macOS Intel (amd64)
+    cmds:
+      - wails build -platform darwin/amd64 -ldflags="-s -w"
+
+  build:macos:arm64:
+    desc: Build for macOS Apple Silicon (arm64)
+    cmds:
+      - wails build -platform darwin/arm64 -ldflags="-s -w"
+
+  build:linux:
+    desc: Build for Linux (amd64)
+    cmds:
+      - wails build -platform linux/amd64 -ldflags="-s -w"
+
+  build:all:
+    desc: Build for all platforms (Windows, macOS universal, Linux)
+    cmds:
+      - task: build:windows
+      - task: build:macos
+      - task: build:linux
+
   dev:
-    desc: Run wails in development 
+    desc: Run wails in development mode
     cmds:
       - wails dev
   
   clean:
-    desc: Removes the dist folder
+    desc: Removes the built folders
     cmds:
-      - rm -rf dist/
+      - rm -rf dist/ build/ ./internal/ui/dist/ ./internal/ui/wailsjs/
