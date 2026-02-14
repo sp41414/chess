@@ -29,7 +29,7 @@ tasks:
   build:linux:
     desc: Build for Linux (amd64)
     cmds:
-      - wails build -clean -platform linux/amd64 -ldflags="-s -w"
+      - wails build -clean -platform linux/amd64 -ldflags="-s -w" -tags webkit2_41
 
   build:all:
     desc: Build for all platforms (Windows, macOS universal, Linux)
