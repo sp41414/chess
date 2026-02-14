@@ -1,0 +1,105 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux/amd64
+            name: linux
+          - os: windows-latest
+            platform: windows/amd64
+            name: windows
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout rep
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Linux deps 
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install frontend dependencies
+        run: |
+          cd internal/ui
+          pnpm install
+
+      - name: Setup Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build with Task
+        run: task build:${{ matrix.name }}
+
+      - name: Package Windows bin
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd build/bin
+          7z a ../../chess-${{ matrix.name }}-amd64.zip chess.exe
+
+      - name: Package Linux bin
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cd build/bin
+          tar -czf ../../chess-${{ matrix.name }}-amd64.tar.gz chess
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chess-${{ matrix.name }}-amd64
+          path: |
+            chess-*.zip
+            chess-*.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/chess-windows-amd64/chess-windows-amd64.zip
+            artifacts/chess-linux-amd64/chess-linux-amd64.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
