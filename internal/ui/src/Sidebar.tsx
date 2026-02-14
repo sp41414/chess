@@ -106,8 +106,8 @@ function Sidebar() {
                                 onClick={() => handleJumpToMove(idx)}
                                 className={`px-2 py-1 rounded flex items-center gap-1 cursor-pointer ${
                                     isActive
-                                        ? "bg-gray-900"
-                                        : "hover:bg-gray-900"
+                                        ? "bg-neutral-900"
+                                        : "hover:bg-neutral-900"
                                 } ${isWhite ? "col-start-1" : "col-start-2"}`}
                             >
                                 <>
@@ -129,7 +129,7 @@ function Sidebar() {
             </div>
             <button
                 onClick={() => setShowExport(true)}
-                className="flex items-center justify-center gap-2 px-4 py-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-2 px-4 py-2 hover:bg-neutral-900 rounded-lg transition-colors cursor-pointer"
             >
                 <Download size={18} />
                 <span>Export</span>
@@ -138,7 +138,7 @@ function Sidebar() {
                 <button
                     onClick={handleUndo}
                     disabled={state.currentMoveIndex < 0}
-                    className="flex items-center justify-center p-3 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-center p-3 hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
                 >
                     <Undo size={20} />
                 </button>
@@ -147,20 +147,20 @@ function Sidebar() {
                     disabled={
                         state.currentMoveIndex >= state.moveHistory.length - 1
                     }
-                    className="flex items-center justify-center p-3 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-center p-3 hover:bg-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
                 >
                     <Redo size={20} />
                 </button>
                 <button
                     onClick={handleFlipBoard}
-                    className="flex items-center justify-center p-3 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
+                    className="flex items-center justify-center p-3 hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
                 >
                     <RotateCw size={20} />
                 </button>
             </div>
             <button
                 onClick={handleNewGame}
-                className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-gray-800 rounded-lg transition-colors font-semibold cursor-pointer"
+                className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-neutral-800 rounded-lg transition-colors font-semibold cursor-pointer"
             >
                 <Plus size={20} />
                 <span>New Game</span>
@@ -174,13 +174,13 @@ function Sidebar() {
                                 await navigator.clipboard.writeText(fen);
                                 setShowExport(false);
                             }}
-                            className="px-4 py-2 hover:bg-gray-800 rounded cursor-pointer"
+                            className="px-4 py-2 hover:bg-neutral-800 rounded cursor-pointer"
                         >
                             Copy FEN
                         </button>
                         <button
                             onClick={() => setShowExport(false)}
-                            className="px-4 py-2 hover:bg-gray-800 rounded cursor-pointer"
+                            className="px-4 py-2 hover:bg-neutral-800 rounded cursor-pointer"
                         >
                             Cancel
                         </button>

@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 
 function App() {
     return (
-        <div className="bg-gray-950 min-h-screen flex justify-around">
+        <div className="bg-neutral-950 min-h-screen flex justify-around">
             <div className="flex-1 flex items-center justify-center">
                 <Board />
             </div>

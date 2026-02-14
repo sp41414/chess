@@ -23,7 +23,7 @@ function Promotion({ isWhite, onSelect }: PromotionProps) {
                         <button
                             key={piece}
                             onClick={() => onSelect(flag)}
-                            className="w-24 h-24 hover:bg-gray-800 rounded-lg flex items-center justify-center transition-colors"
+                            className="w-24 h-24 hover:bg-neutral-800 rounded-lg flex items-center justify-center transition-colors"
                         >
                             {pieces[pieceKey]?.()}
                         </button>
