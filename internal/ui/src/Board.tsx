@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     GetFEN,
     GetMoves,
@@ -11,6 +11,7 @@ import {
     IsThreefoldRepetition,
     NewGame,
     PlayMove,
+    UndoMove,
 } from "../wailsjs/go/main/App";
 import { useBoard } from "./BoardContext";
 import type { Move, SquareIndex } from "./types";
@@ -25,10 +26,15 @@ import {
 import Square from "./Square";
 
 function Board() {
-    const RANKS = [7, 6, 5, 4, 3, 2, 1, 0];
-    const FILES = [0, 1, 2, 3, 4, 5, 6, 7];
-
     const { state, setState, loadBoard } = useBoard();
+
+    const RANKS = state.boardFlipped
+        ? [0, 1, 2, 3, 4, 5, 6, 7]
+        : [7, 6, 5, 4, 3, 2, 1, 0];
+    const FILES = state.boardFlipped
+        ? [7, 6, 5, 4, 3, 2, 1, 0]
+        : [0, 1, 2, 3, 4, 5, 6, 7];
+
     const [availableMoves, setAvailableMoves] = useState<SquareIndex[]>([]);
     const [kingInCheckSq, setKingInCheckSq] = useState<SquareIndex | null>(
         null,
@@ -46,6 +52,52 @@ function Board() {
         to: (move >> 6) & 0x3f,
         flags: (move >> 12) & 0xf,
     });
+
+    async function handleUndo() {
+        if (state.currentMoveIndex < 0) return;
+
+        const entry = state.moveHistory[state.currentMoveIndex];
+        await UndoMove(entry.move, entry.undo);
+
+        setState((prev) => ({
+            ...prev,
+            currentMoveIndex: prev.currentMoveIndex - 1,
+        }));
+        await loadBoard();
+    }
+
+    async function handleRedo() {
+        if (state.currentMoveIndex >= state.moveHistory.length - 1) return;
+
+        const entry = state.moveHistory[state.currentMoveIndex + 1];
+        const newUndo = await PlayMove(entry.move);
+
+        setState((prev) => {
+            const newHistory = [...prev.moveHistory];
+            newHistory[prev.currentMoveIndex + 1] = { ...entry, undo: newUndo };
+            return {
+                ...prev,
+                moveHistory: newHistory,
+                currentMoveIndex: prev.currentMoveIndex + 1,
+            };
+        });
+        await loadBoard();
+    }
+
+    useEffect(() => {
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                handleUndo();
+            } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                handleRedo();
+            }
+        }
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [state.currentMoveIndex, state.moveHistory]);
 
     async function findKingSq() {
         const check = await IsInCheck();
@@ -130,6 +182,8 @@ function Board() {
             ...prev,
             marks: [],
             arrows: [],
+            moveHistory: [],
+            currentMoveIndex: -1,
         }));
     }
 
@@ -142,23 +196,37 @@ function Board() {
 
         if (move) {
             const { flags } = getMove(move);
-            // Check if the flag is a promotion
+
             if (flags >= 8) {
                 setPromotion({ from, to });
                 clearSelection();
                 return;
             }
 
+            const piece = state.pieces[from]!;
+
+            const undo = await PlayMove(move);
+
+            const newHistory = state.moveHistory.slice(
+                0,
+                state.currentMoveIndex + 1,
+            );
+            newHistory.push({ from, to, piece, move, undo });
+
+            setState((prev) => ({
+                ...prev,
+                moveHistory: newHistory,
+                currentMoveIndex: newHistory.length - 1,
+            }));
+
             setLastMove({ from, to });
             clearSelection();
 
-            await PlayMove(move);
             await loadBoard();
             await findKingSq();
             await checkGameOver();
         } else if (state.pieces[to]) {
             clearSelection();
-            await selectPiece(to);
         } else {
             clearSelection();
         }
@@ -187,10 +255,25 @@ function Board() {
         const promotionMove =
             (from & 0x3f) | ((to & 0x3f) << 6) | ((finalFlag & 0xf) << 12);
 
+        const piece = state.pieces[from]!;
+
+        const undo = await PlayMove(promotionMove);
+
+        const newHistory = state.moveHistory.slice(
+            0,
+            state.currentMoveIndex + 1,
+        );
+        newHistory.push({ from, to, piece, move: promotionMove, undo });
+
+        setState((prev) => ({
+            ...prev,
+            moveHistory: newHistory,
+            currentMoveIndex: newHistory.length - 1,
+        }));
+
         setLastMove({ from, to });
         setPromotion(null);
 
-        await PlayMove(promotionMove);
         await loadBoard();
         await findKingSq();
         await checkGameOver();
@@ -274,14 +357,15 @@ function Board() {
                             <Square
                                 key={idx}
                                 idx={idx}
-                                isDark={isDark}
-                                piece={piece}
                                 isSelected={isSelected}
-                                isLegalMove={isLegalMove}
-                                isKingInCheck={isKingInCheck}
                                 isCapture={isCapture}
+                                piece={piece}
+                                isDark={isDark}
+                                isLegalMove={isLegalMove}
                                 isLastMove={isLastMove}
+                                isKingInCheck={isKingInCheck}
                                 isMarked={state.marks.includes(idx)}
+                                boardFlipped={state.boardFlipped}
                                 onSquareClick={handleSquareClick}
                                 onRightMouseDown={handleRightMouseDown}
                                 onRightMouseUp={handleRightMouseUp}

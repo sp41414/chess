@@ -66,6 +66,7 @@ func (a *App) IsThreefoldRepetition() bool {
 	return a.board.IsThreefoldRepetition()
 }
 
+// Unused
 // func (a *App) IsDraw() bool {
 // 	return a.board.IsDraw()
 // }

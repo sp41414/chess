@@ -1,6 +1,33 @@
+import { engine } from "../wailsjs/go/models";
+
 export type Arrow = {
     from: number;
     to: number;
+};
+
+export type MoveHistoryEntry = {
+    from: number;
+    to: number;
+    piece: string;
+    move: number;
+    undo: engine.Undo;
+};
+
+export type BoardState = {
+    pieces: Record<SquareIndex, string | null>;
+    selectedSquare: SquareIndex | null;
+    legalMoves: SquareIndex[];
+    arrows: Arrow[];
+    marks: SquareIndex[];
+    moveHistory: MoveHistoryEntry[];
+    currentMoveIndex: number;
+    boardFlipped: boolean;
+};
+
+export type BoardContextType = {
+    state: BoardState;
+    setState: React.Dispatch<React.SetStateAction<BoardState>>;
+    loadBoard: () => Promise<void>;
 };
 
 export type PieceRender = Record<
@@ -14,21 +41,6 @@ export type PieceRender = Record<
 
 // 0-63, a1 is 0, h8 is 63
 export type SquareIndex = number;
-
-export type BoardState = {
-    pieces: Record<SquareIndex, string | null>;
-    selectedSquare: SquareIndex | null;
-    legalMoves: SquareIndex[];
-
-    arrows: Arrow[];
-    marks: SquareIndex[];
-};
-
-export type BoardContextType = {
-    state: BoardState;
-    setState: React.Dispatch<React.SetStateAction<BoardState>>;
-    loadBoard: () => Promise<void>;
-};
 
 export type Move = {
     from: number;

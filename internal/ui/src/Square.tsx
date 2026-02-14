@@ -11,6 +11,7 @@ interface SquareProps {
     isCapture: boolean;
     isLastMove: boolean;
     isMarked: boolean;
+    boardFlipped: boolean;
     onSquareClick: (idx: number) => void;
     onRightMouseDown: (idx: number, e: React.MouseEvent) => void;
     onRightMouseUp: (idx: number, e: React.MouseEvent) => void;
@@ -26,6 +27,7 @@ function Square({
     isCapture,
     isLastMove,
     isMarked,
+    boardFlipped,
     onSquareClick,
     onRightMouseDown,
     onRightMouseUp,
@@ -53,11 +55,12 @@ function Square({
 
     const file = idx % 8;
     const rank = Math.floor(idx / 8);
-    const isBottomRank = rank === 0;
-    const isLeftFile = file === 0;
 
-    const fileLabel = String.fromCharCode(97 + file); // a-h
-    const rankLabel = (rank + 1).toString(); // 1-8
+    const isBottomRank = boardFlipped ? rank === 7 : rank === 0;
+    const isLeftFile = boardFlipped ? file === 7 : file === 0;
+
+    const fileLabel = String.fromCharCode(97 + file);
+    const rankLabel = (rank + 1).toString();
 
     return (
         <div

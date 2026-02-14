@@ -5,14 +5,14 @@ import { GetPieces } from "../wailsjs/go/main/App";
 
 function BoardProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<BoardState>({
-        // Square indexes 0-63
         pieces: {},
         selectedSquare: null,
         legalMoves: [],
-        // Right click and hold arrows
         arrows: [],
-        // Right click marks
         marks: [],
+        moveHistory: [],
+        currentMoveIndex: -1,
+        boardFlipped: false,
     });
 
     async function loadBoard() {

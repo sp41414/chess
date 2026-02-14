@@ -1,9 +1,9 @@
-type GameoverModalProps = {
+interface GameoverModalProps {
     winner: string | null;
     gameoverType: string;
     onNewGame: () => void;
     onClose: () => void;
-};
+}
 
 function GameoverModal({
     winner,
