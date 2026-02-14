@@ -67,13 +67,13 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           cd build/bin
-          7z a ../../chess-${{ matrix.name }}-amd64.zip chess.exe
+          7z a ../../chess-${{ matrix.name }}-amd64.zip Chess.exe
 
       - name: Package Linux bin
         if: matrix.os == 'ubuntu-latest'
         run: |
           cd build/bin
-          tar -czf ../../chess-${{ matrix.name }}-amd64.tar.gz chess
+          tar -czf ../../chess-${{ matrix.name }}-amd64.tar.gz Chess
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
