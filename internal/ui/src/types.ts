@@ -22,6 +22,7 @@ export type BoardState = {
     moveHistory: MoveHistoryEntry[];
     currentMoveIndex: number;
     boardFlipped: boolean;
+    sideToMove: "w" | "b";
 };
 
 export type BoardContextType = {

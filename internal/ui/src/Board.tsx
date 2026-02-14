@@ -120,7 +120,9 @@ function Board() {
     }
 
     async function selectPiece(sq: number) {
-        if (!state.pieces[sq]) return;
+        const piece = state.pieces[sq];
+        if (!piece) return;
+        if (piece[0] !== state.sideToMove) return;
         const moves = await GetMoves();
 
         const movesFrom = moves.filter((m: number) => getMove(m).from === sq);
@@ -352,6 +354,8 @@ function Board() {
                         const isCapture = isLegalMove && !!piece;
                         const isLastMove =
                             lastMove?.from === idx || lastMove?.to === idx;
+                        const canDrag =
+                            piece != null && piece[0] === state.sideToMove;
 
                         return (
                             <Square
@@ -366,6 +370,7 @@ function Board() {
                                 isKingInCheck={isKingInCheck}
                                 isMarked={state.marks.includes(idx)}
                                 boardFlipped={state.boardFlipped}
+                                canDrag={canDrag}
                                 onSquareClick={handleSquareClick}
                                 onRightMouseDown={handleRightMouseDown}
                                 onRightMouseUp={handleRightMouseUp}

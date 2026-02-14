@@ -12,6 +12,7 @@ interface SquareProps {
     isLastMove: boolean;
     isMarked: boolean;
     boardFlipped: boolean;
+    canDrag: boolean;
     onSquareClick: (idx: number) => void;
     onRightMouseDown: (idx: number, e: React.MouseEvent) => void;
     onRightMouseUp: (idx: number, e: React.MouseEvent) => void;
@@ -28,6 +29,7 @@ function Square({
     isLastMove,
     isMarked,
     boardFlipped,
+    canDrag,
     onSquareClick,
     onRightMouseDown,
     onRightMouseUp,
@@ -44,7 +46,7 @@ function Square({
         isDragging,
     } = useDraggable({
         id: idx.toString(),
-        disabled: !piece,
+        disabled: !canDrag || !piece,
     });
 
     const dragStyle = transform

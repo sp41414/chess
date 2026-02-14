@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { BoardState } from "./types";
 import { BoardContext } from "./BoardContext";
-import { GetPieces } from "../wailsjs/go/main/App";
+import { GetFEN, GetPieces } from "../wailsjs/go/main/App";
 
 function BoardProvider({ children }: { children: React.ReactNode }) {
     const [state, setState] = useState<BoardState>({
@@ -13,11 +13,14 @@ function BoardProvider({ children }: { children: React.ReactNode }) {
         moveHistory: [],
         currentMoveIndex: -1,
         boardFlipped: false,
+        sideToMove: "w",
     });
 
     async function loadBoard() {
         const pieces = await GetPieces();
-        setState((prev) => ({ ...prev, pieces }));
+        const fen = await GetFEN();
+        const sideToMove = fen.split(" ")[1] as "w" | "b";
+        setState((prev) => ({ ...prev, pieces, sideToMove }));
     }
 
     useEffect(() => {
