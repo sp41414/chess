@@ -2,6 +2,16 @@
 
 A chess game application written with Go and React, using Wails.
 
+## Screenshots
+
+<div align="center">
+  <img src="screenshots/legal-moves.png" width="400" alt="Legal Moves">
+  <img src="screenshots/checkmate.png" width="400" alt="Checkmate">
+  <img src="screenshots/promotion.png" width="400" alt="Promotion">
+  <img src="screenshots/en-passant.png" width="400" alt="En Passant">
+  <img src="screenshots/flip-board.png" width="400" alt="Flip Board">
+</div>
+
 ## Features
 
 ### Chess Engine
@@ -10,27 +20,27 @@ A chess game application written with Go and React, using Wails.
 - Special moves: castling, en passant, pawn promotion
 - Check, checkmate, stalemate detection
 - Draw conditions:
-1. Fifty-move rule
-2. Threefold repetition
-3. Insufficient material
+    1. Fifty-move rule
+    2. Threefold repetition
+    3. Insufficient material
 
 ### UI
 
 - Drag-and-drop & Click-to-move piece movement
 - Visual feedback for:
-1. Legal moves
-2. Check
-3. Last move highlighting
-4. Selected piece highlighting
-5. Promotion selection
-6. Checkmate and draws
+    1. Legal moves
+    2. Check
+    3. Last move highlighting
+    4. Selected piece highlighting
+    5. Promotion selection
+    6. Checkmate and draws
 - Mark squares with right click and draw arrows by holding right click to another square
 - Sidebar includes:
-1. Move history and jumping to a move by clicking
-2. Undo/Redo with keyboard shortcuts left arrow and right arrow
-3. Flipping board orientation
-4. Exporting current board position to FEN
-5. New game button
+    1. Move history and jumping to a move by clicking
+    2. Undo/Redo with keyboard shortcuts left arrow and right arrow
+    3. Flipping board orientation
+    4. Exporting current board position to FEN
+    5. New game button
 
 ## Prerequisites
 
