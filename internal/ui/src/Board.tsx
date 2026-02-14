@@ -3,7 +3,13 @@ import {
     GetFEN,
     GetMoves,
     GetPieces,
+    IsCheckmate,
+    IsFiftyMoveRule,
     IsInCheck,
+    IsInsufficientMaterial,
+    IsStalemate,
+    IsThreefoldRepetition,
+    NewGame,
     PlayMove,
 } from "../wailsjs/go/main/App";
 import { useBoard } from "./BoardContext";
@@ -11,6 +17,7 @@ import { pieces } from "./pieces";
 import type { Move, SquareIndex } from "./types";
 import Promotion from "./Promotion";
 import Arrows from "./Arrows";
+import GameoverModal from "./GameoverModal";
 
 function Board() {
     const RANKS = [7, 6, 5, 4, 3, 2, 1, 0];
@@ -24,6 +31,10 @@ function Board() {
     const [lastMove, setLastMove] = useState<Move | null>(null);
     const [promotion, setPromotion] = useState<Move | null>(null);
     const [rightClickStart, setRightClickStart] = useState<number | null>(null);
+    const [gameOver, setGameOver] = useState<{
+        winner: string | null;
+        type: string;
+    } | null>(null);
 
     const getMove = (move: number) => ({
         from: move & 0x3f,
@@ -74,6 +85,49 @@ function Board() {
         }));
     }
 
+    async function checkGameOver() {
+        const checkmate = await IsCheckmate();
+        const stalemate = await IsStalemate();
+        const insufficientMaterial = await IsInsufficientMaterial();
+        const threefoldRepetition = await IsThreefoldRepetition();
+        const fiftyMove = await IsFiftyMoveRule();
+
+        const fen = await GetFEN();
+        const currentSide = fen.split(" ")[1];
+
+        if (checkmate) {
+            setGameOver({
+                winner: currentSide === "w" ? "b" : "w",
+                type: "checkmate",
+            });
+        } else if (stalemate) {
+            setGameOver({ winner: null, type: "stalemate" });
+        } else if (insufficientMaterial) {
+            setGameOver({ winner: null, type: "insufficient material" });
+        } else if (threefoldRepetition) {
+            setGameOver({ winner: null, type: "threefold repetition" });
+        } else if (fiftyMove) {
+            setGameOver({ winner: null, type: "fifty-move rule" });
+        }
+    }
+
+    async function resetGame() {
+        await NewGame();
+        await loadBoard();
+        setGameOver(null);
+        setLastMove(null);
+        setKingInCheckSq(null);
+        setAvailableMoves([]);
+        setPromotion(null);
+        setRightClickStart(null);
+        clearSelection();
+        setState((prev) => ({
+            ...prev,
+            marks: [],
+            arrows: [],
+        }));
+    }
+
     async function handleMove(to: number) {
         const from = state.selectedSquare!;
         const move = availableMoves.find((m: number) => {
@@ -96,6 +150,7 @@ function Board() {
             await PlayMove(move);
             await loadBoard();
             await findKingSq();
+            await checkGameOver();
         } else if (state.pieces[to]) {
             clearSelection();
             await selectPiece(to);
@@ -133,6 +188,7 @@ function Board() {
         await PlayMove(promotionMove);
         await loadBoard();
         await findKingSq();
+        await checkGameOver();
     }
 
     function handleRightMouseDown(sq: number, e: React.MouseEvent) {
@@ -207,7 +263,7 @@ function Board() {
                                     isLastMove
                                         ? "bg-board-selected/80"
                                         : isSelected
-                                          ? "bg-board-selected/90 ring-2 ring-inset"
+                                          ? "bg-board-selected/90 ring-2 ring-inset border-none"
                                           : isDark
                                             ? "bg-board-dark"
                                             : "bg-board-light"
@@ -239,6 +295,14 @@ function Board() {
                 <Promotion
                     isWhite={state.pieces[promotion.from]?.[0] === "w"}
                     onSelect={handlePromotion}
+                />
+            )}
+            {gameOver && (
+                <GameoverModal
+                    winner={gameOver.winner}
+                    gameoverType={gameOver.type}
+                    onNewGame={resetGame}
+                    onClose={() => setGameOver(null)}
                 />
             )}
         </>

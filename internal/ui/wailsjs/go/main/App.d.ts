@@ -10,8 +10,6 @@ export function GetPieces():Promise<Record<number, string>>;
 
 export function IsCheckmate():Promise<boolean>;
 
-export function IsDraw():Promise<boolean>;
-
 export function IsFiftyMoveRule():Promise<boolean>;
 
 export function IsInCheck():Promise<boolean>;
@@ -21,6 +19,8 @@ export function IsInsufficientMaterial():Promise<boolean>;
 export function IsStalemate():Promise<boolean>;
 
 export function IsThreefoldRepetition():Promise<boolean>;
+
+export function NewGame():Promise<void>;
 
 export function PlayMove(arg1:engine.Move):Promise<engine.Undo>;
 

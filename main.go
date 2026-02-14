@@ -30,6 +30,10 @@ func (a *App) startup(ctx context.Context) {
 
 // wrappers for wails bindings from go to the frontend
 
+func (a *App) NewGame() {
+	a.board = engine.Init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+}
+
 func (a *App) GetFEN() string {
 	return a.board.GetFEN()
 }
@@ -62,9 +66,9 @@ func (a *App) IsThreefoldRepetition() bool {
 	return a.board.IsThreefoldRepetition()
 }
 
-func (a *App) IsDraw() bool {
-	return a.board.IsDraw()
-}
+// func (a *App) IsDraw() bool {
+// 	return a.board.IsDraw()
+// }
 
 func (a *App) PlayMove(m engine.Move) engine.Undo {
 	return a.board.PlayMove(m)

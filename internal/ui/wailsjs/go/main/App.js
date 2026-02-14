@@ -18,10 +18,6 @@ export function IsCheckmate() {
   return window['go']['main']['App']['IsCheckmate']();
 }
 
-export function IsDraw() {
-  return window['go']['main']['App']['IsDraw']();
-}
-
 export function IsFiftyMoveRule() {
   return window['go']['main']['App']['IsFiftyMoveRule']();
 }
@@ -40,6 +36,10 @@ export function IsStalemate() {
 
 export function IsThreefoldRepetition() {
   return window['go']['main']['App']['IsThreefoldRepetition']();
+}
+
+export function NewGame() {
+  return window['go']['main']['App']['NewGame']();
 }
 
 export function PlayMove(arg1) {

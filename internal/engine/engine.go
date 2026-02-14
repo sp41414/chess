@@ -84,9 +84,10 @@ func (b *Board) IsThreefoldRepetition() bool {
 
 // IsDraw returns true if the current position is either a draw by
 // stalemate, insufficient material, or threefold repetition.
-func (b *Board) IsDraw() bool {
-	return b.IsStalemate() || b.IsInsufficientMaterial() || b.IsThreefoldRepetition()
-}
+// UNUSED
+// func (b *Board) IsDraw() bool {
+// 	return b.IsStalemate() || b.IsInsufficientMaterial() || b.IsThreefoldRepetition()
+// }
 
 // GetFEN returns the current board state in FEN format
 func (b *Board) GetFEN() string {
