@@ -13,11 +13,16 @@ import {
     PlayMove,
 } from "../wailsjs/go/main/App";
 import { useBoard } from "./BoardContext";
-import { pieces } from "./pieces";
 import type { Move, SquareIndex } from "./types";
 import Promotion from "./Promotion";
 import Arrows from "./Arrows";
 import GameoverModal from "./GameoverModal";
+import {
+    DndContext,
+    type DragEndEvent,
+    type DragStartEvent,
+} from "@dnd-kit/core";
+import Square from "./Square";
 
 function Board() {
     const RANKS = [7, 6, 5, 4, 3, 2, 1, 0];
@@ -231,8 +236,26 @@ function Board() {
         setRightClickStart(null);
     }
 
+    function handleDragStart(e: DragStartEvent) {
+        const fromSq = parseInt(e.active.id as string);
+        selectPiece(fromSq);
+    }
+
+    function handleDragEnd(e: DragEndEvent) {
+        const { active, over } = e;
+
+        if (!over) return;
+
+        const fromSq = parseInt(active.id as string);
+        const toSq = parseInt(over.id as string);
+
+        if (fromSq === toSq) return;
+
+        handleMove(toSq);
+    }
+
     return (
-        <>
+        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <div className="grid grid-cols-8 grid-rows-8 aspect-square select-none max-w-[min(90vw,90vh)] max-h-[min(90vw,90vh)] relative">
                 <Arrows />
                 {RANKS.map((rank) =>
@@ -243,50 +266,26 @@ function Board() {
                         const isSelected = state.selectedSquare === idx;
                         const isLegalMove = state.legalMoves.includes(idx);
                         const isKingInCheck = kingInCheckSq === idx;
-                        const isCapture = isLegalMove && piece;
+                        const isCapture = isLegalMove && !!piece;
                         const isLastMove =
                             lastMove?.from === idx || lastMove?.to === idx;
 
                         return (
-                            <div
+                            <Square
                                 key={idx}
-                                onMouseDown={(e) =>
-                                    e.button === 2 &&
-                                    handleRightMouseDown(idx, e)
-                                }
-                                onMouseUp={(e) =>
-                                    e.button === 2 && handleRightMouseUp(idx, e)
-                                }
-                                onClick={() => handleSquareClick(idx)}
-                                onContextMenu={(e) => e.preventDefault()}
-                                className={`relative flex items-center justify-center ${
-                                    isLastMove
-                                        ? "bg-board-selected/80"
-                                        : isSelected
-                                          ? "bg-board-selected/90 ring-2 ring-inset border-none"
-                                          : isDark
-                                            ? "bg-board-dark"
-                                            : "bg-board-light"
-                                }`}
-                            >
-                                {state.marks.includes(idx) && (
-                                    <div className="absolute inset-0 bg-red-500/40 z-0 pointer-events-none" />
-                                )}
-                                {isKingInCheck && (
-                                    <div className="absolute w-full h-full rounded-full bg-red-500/70 blur-sm z-0 will-change-transform" />
-                                )}
-                                {piece && (
-                                    <div className="z-10">
-                                        {pieces[piece]?.()}
-                                    </div>
-                                )}
-                                {isLegalMove && !isCapture && (
-                                    <div className="absolute w-1/3 h-1/3 bg-black/30 rounded-full pointer-events-none" />
-                                )}
-                                {isCapture && (
-                                    <div className="absolute w-4/5 h-4/5 ring-8 ring-red-400 rounded-full pointer-events-none z-0" />
-                                )}
-                            </div>
+                                idx={idx}
+                                isDark={isDark}
+                                piece={piece}
+                                isSelected={isSelected}
+                                isLegalMove={isLegalMove}
+                                isKingInCheck={isKingInCheck}
+                                isCapture={isCapture}
+                                isLastMove={isLastMove}
+                                isMarked={state.marks.includes(idx)}
+                                onSquareClick={handleSquareClick}
+                                onRightMouseDown={handleRightMouseDown}
+                                onRightMouseUp={handleRightMouseUp}
+                            />
                         );
                     }),
                 )}
@@ -305,7 +304,7 @@ function Board() {
                     onClose={() => setGameOver(null)}
                 />
             )}
-        </>
+        </DndContext>
     );
 }
 
